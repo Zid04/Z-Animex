@@ -3,7 +3,6 @@ import { LayoutGrid, Menu, Search, Film, ListChecks } from 'lucide-react';
 import { Breadcrumbs } from '@/components/breadcrumbs';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
-import { getAvatarUrl } from '@/lib/avatar-utils';
 import {
     DropdownMenu,
     DropdownMenuContent,
@@ -25,6 +24,7 @@ import {
 import { UserMenuContent } from '@/components/user-menu-content';
 import { useCurrentUrl } from '@/hooks/use-current-url';
 import { useInitials } from '@/hooks/use-initials';
+import { getAvatarUrl } from '@/lib/avatar-utils';
 import { cn } from '@/lib/utils';
 import { dashboard } from '@/routes';
 import type { BreadcrumbItem, NavItem } from '@/types';

@@ -1,13 +1,10 @@
-import { useState } from 'react';
-
 type Props = {
     maxLength: number;
     currentLength: number;
     label?: string;
-    isError?: boolean;
 };
 
-export function CharacterCounter({ maxLength, currentLength, label = 'Caractères', isError = false }: Props) {
+export function CharacterCounter({ maxLength, currentLength, label = 'Caractères' }: Props) {
     const percentage = (currentLength / maxLength) * 100;
     const isWarning = currentLength > maxLength * 0.8;
     const isExceeded = currentLength > maxLength;

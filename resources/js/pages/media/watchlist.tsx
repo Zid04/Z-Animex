@@ -1,4 +1,4 @@
-import { Head, Link, Form, router } from '@inertiajs/react';
+import { Head, Link, Form } from '@inertiajs/react';
 import React, { useState } from 'react';
 
 import { Button } from '@/components/ui/button';
@@ -6,7 +6,6 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 
 import AppLayout from '@/layouts/app-layout';
-import { WatchlistSelector } from '@/components/watchlist-selector';
 
 import { show as mediaShow } from '@/routes/media';
 import { destroy as watchlistDestroy } from '@/routes/watchlist';
@@ -191,8 +190,11 @@ export default function Watchlist({ items, collections }: Props) {
 function WatchlistContent({
     title,
     media,
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     editingId,
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     setEditingId,
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     collections,
 }: {
     title: string;
@@ -254,6 +256,7 @@ function CollectionContent({
     collection,
     editingId,
     setEditingId,
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     collections,
 }: {
     collection: WatchlistCollection;
@@ -389,7 +392,9 @@ function CollectionContent({
     );
 }
 
-function MediaCard({ id, media }: { id: number; media: MediaItem }) {
+function MediaCard({ 
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    id, media }: { id: number; media: MediaItem }) {
     const imageSrc = media.cover && media.cover.startsWith('http') 
         ? media.cover 
         : media.cover ? `/storage/${media.cover}` 
