@@ -10,7 +10,7 @@ use Tests\TestCase;
  * Tests fonctionnels pour l'authentification et les permissions
  * Vérifie la connexion, l'inscription et l'accès aux ressources protégées
  */
-class AuthenticationTest extends TestCase
+class DashboardAuthTest extends TestCase
 {
     use RefreshDatabase;
 
