@@ -5,9 +5,11 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOneThrough;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 
 class Episode extends Model
 {
+    use HasFactory;
     protected $fillable = [
         'season_id',
         'number',
@@ -37,10 +39,10 @@ class Episode extends Model
         return $this->hasOneThrough(
             Media::class,   // Modèle final
             Season::class,  // Modèle intermédiaire
-            'id',           // Clé primaire de Season
-            'id',           // Clé primaire de Media
-            'season_id',    // Clé étrangère dans Episode
-            'media_id'      // Clé étrangère dans Season
+            'id',           
+            'id',           
+            'season_id',    
+            'media_id'      
         );
     }
 

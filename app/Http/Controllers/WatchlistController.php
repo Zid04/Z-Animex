@@ -36,11 +36,33 @@ class WatchlistController extends Controller
         return back();
     }
 
+    public function storeNamed(Request $request)
+    {
+        $validated = $request->validate([
+            'name' => ['required', 'string', 'min:1', 'max:255'],
+            'description' => ['nullable', 'string', 'max:1000'],
+        ]);
+
+        Watchlist::create([
+            'user_id' => Auth::id(),
+            'name' => $validated['name'],
+            'description' => $validated['description'] ?? null,
+        ]);
+
+        return back();
+    }
+
     public function destroy(Media $media)
     {
-        Watchlist::where('user_id', Auth::id())
+        $watchlist = Watchlist::where('user_id', Auth::id())
             ->where('media_id', $media->id)
-            ->delete();
+            ->first();
+
+        if (!$watchlist) {
+            abort(403, 'Unauthorized');
+        }
+
+        $watchlist->delete();
 
         return back();
     }

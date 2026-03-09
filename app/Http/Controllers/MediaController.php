@@ -135,18 +135,35 @@ public function index(Request $request): Response
     public function store(Request $request): RedirectResponse
     {
         $validated = $request->validate([
-            'title' => ['required', 'string', 'max:255'],
-            'description' => ['nullable', 'string'],
-            'year' => ['nullable', 'integer'],
+            'title' => ['required', 'string', 'min:3', 'max:255'],
+            'description' => ['nullable', 'string', 'max:5000'],
+            'year' => ['nullable', 'integer', 'min:1900', 'max:' . date('Y') + 1],
             'type' => ['required', 'in:anime,movie,series'],
             'visibility' => ['required', 'in:public,private'],
             'cover' => ['nullable', 'image', 'max:2048'],
+            'cover_url' => ['nullable', 'url'],
+        ], [
+            'title.required' => 'Le titre est obligatoire.',
+            'title.min' => 'Le titre doit contenir au moins 3 caractères.',
+            'title.max' => 'Le titre ne peut pas dépasser 255 caractères.',
+            'description.max' => 'La description ne peut pas dépasser 5000 caractères.',
+            'year.min' => 'L\'année doit être supérieure à 1900.',
+            'year.max' => "L'année ne peut pas être supérieure à " . (date('Y') + 1),
+            'type.required' => 'Le type est obligatoire.',
+            'type.in' => 'Le type sélectionné n\'est pas valide.',
+            'visibility.required' => 'La visibilité est obligatoire.',
+            'cover.image' => 'Le fichier doit être une image valide.',
+            'cover.max' => 'L\'image ne doit pas dépasser 2 MB.',
+            'cover_url.url' => 'Veuillez entrer une URL valide pour l\'image.',
         ]);
 
         $validated['user_id'] = Auth::id();
 
+        // Gérer l'image : fichier ou URL
         if ($request->hasFile('cover')) {
             $validated['cover'] = $request->file('cover')->store('covers', 'public');
+        } elseif ($request->filled('cover_url')) {
+            $validated['cover'] = $request->input('cover_url');
         }
 
         $media = Media::create($validated);
@@ -352,19 +369,41 @@ public function index(Request $request): Response
         }
 
         $validated = $request->validate([
-            'title' => ['required', 'string', 'max:255'],
-            'description' => ['nullable', 'string'],
-            'year' => ['nullable', 'integer'],
+            'title' => ['required', 'string', 'min:3', 'max:255'],
+            'description' => ['nullable', 'string', 'max:5000'],
+            'year' => ['nullable', 'integer', 'min:1900', 'max:' . date('Y') + 1],
             'type' => ['required', 'in:anime,movie,series'],
             'visibility' => ['required', 'in:public,private'],
             'cover' => ['nullable', 'image', 'max:2048'],
+            'cover_url' => ['nullable', 'url'],
+        ], [
+            'title.required' => 'Le titre est obligatoire.',
+            'title.min' => 'Le titre doit contenir au moins 3 caractères.',
+            'title.max' => 'Le titre ne peut pas dépasser 255 caractères.',
+            'description.max' => 'La description ne peut pas dépasser 5000 caractères.',
+            'year.min' => 'L\'année doit être supérieure à 1900.',
+            'year.max' => "L'année ne peut pas être supérieure à " . (date('Y') + 1),
+            'type.required' => 'Le type est obligatoire.',
+            'type.in' => 'Le type sélectionné n\'est pas valide.',
+            'visibility.required' => 'La visibilité est obligatoire.',
+            'cover.image' => 'Le fichier doit être une image valide.',
+            'cover.max' => 'L\'image ne doit pas dépasser 2 MB.',
+            'cover_url.url' => 'Veuillez entrer une URL valide pour l\'image.',
         ]);
 
+        // Gérer l'image : fichier ou URL
         if ($request->hasFile('cover')) {
-            if ($media->cover) {
+            // Si l'ancienne couverture est un fichier (pas une URL), la supprimer
+            if ($media->cover && !str_starts_with($media->cover, 'http')) {
                 Storage::disk('public')->delete($media->cover);
             }
             $validated['cover'] = $request->file('cover')->store('covers', 'public');
+        } elseif ($request->filled('cover_url')) {
+            // Si l'ancienne couverture est un fichier, la supprimer avant de mettre l'URL
+            if ($media->cover && !str_starts_with($media->cover, 'http')) {
+                Storage::disk('public')->delete($media->cover);
+            }
+            $validated['cover'] = $request->input('cover_url');
         }
 
         $media->update($validated);

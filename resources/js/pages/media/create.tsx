@@ -5,6 +5,7 @@ import InputError from '@/components/input-error';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { CharacterCounter } from '@/components/character-counter';
 
 import AppLayout from '@/layouts/app-layout';
 
@@ -27,6 +28,13 @@ type Props = {
 export default function MediaCreate({ all_tags }: Props) {
     const [seasons, setSeasons] = useState<Season[]>([]);
     const [currentSeason, setCurrentSeason] = useState(1);
+    const [coverType, setCoverType] = useState<'file' | 'url'>('file');
+    const [coverPreview, setCoverPreview] = useState<string | null>(null);
+    const [titleLength, setTitleLength] = useState(0);
+    const [descriptionLength, setDescriptionLength] = useState(0);
+
+    const MAX_TITLE_LENGTH = 255;
+    const MAX_DESCRIPTION_LENGTH = 5000;
 
     const addSeason = () => {
         if (!seasons.find(s => s.number === currentSeason)) {
@@ -68,6 +76,21 @@ export default function MediaCreate({ all_tags }: Props) {
         ));
     };
 
+    const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = (event) => {
+                setCoverPreview(event.target?.result as string);
+            };
+            reader.readAsDataURL(file);
+        }
+    };
+
+    const handleUrlChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        setCoverPreview(e.target.value || null);
+    };
+
     return (
         <AppLayout>
             <Head title="Ajouter un média" />
@@ -87,8 +110,19 @@ export default function MediaCreate({ all_tags }: Props) {
                                 <h2 className="text-lg font-semibold">Informations du média</h2>
 
                                 <div className="space-y-2">
-                                    <Label htmlFor="title">Titre</Label>
-                                    <Input id="title" name="title" required />
+                                    <Label htmlFor="title">Titre *</Label>
+                                    <Input 
+                                        id="title" 
+                                        name="title" 
+                                        required 
+                                        maxLength={MAX_TITLE_LENGTH}
+                                        onChange={(e) => setTitleLength(e.target.value.length)}
+                                    />
+                                    <CharacterCounter 
+                                        currentLength={titleLength} 
+                                        maxLength={MAX_TITLE_LENGTH}
+                                        label="caractères"
+                                    />
                                     <InputError message={errors.title} />
                                 </div>
 
@@ -97,7 +131,14 @@ export default function MediaCreate({ all_tags }: Props) {
                                     <textarea
                                         id="description"
                                         name="description"
-                                        className="border rounded p-2 w-full min-h-[120px]"
+                                        maxLength={MAX_DESCRIPTION_LENGTH}
+                                        onChange={(e) => setDescriptionLength(e.target.value.length)}
+                                        className="border rounded p-2 w-full min-h-[120px] bg-background text-foreground"
+                                    />
+                                    <CharacterCounter 
+                                        currentLength={descriptionLength} 
+                                        maxLength={MAX_DESCRIPTION_LENGTH}
+                                        label="caractères"
                                     />
                                     <InputError message={errors.description} />
                                 </div>
@@ -114,7 +155,7 @@ export default function MediaCreate({ all_tags }: Props) {
                                         <select
                                             id="type"
                                             name="type"
-                                            className="border rounded p-2 w-full"
+                                            className="border rounded p-2 w-full bg-background text-foreground"
                                         >
                                             <option value="anime">Anime</option>
                                             <option value="movie">Film</option>
@@ -130,7 +171,7 @@ export default function MediaCreate({ all_tags }: Props) {
                                         <select
                                             id="visibility"
                                             name="visibility"
-                                            className="border rounded p-2 w-full"
+                                            className="border rounded p-2 w-full bg-background text-foreground"
                                         >
                                             <option value="public">Public</option>
                                             <option value="private">Privé</option>
@@ -139,16 +180,83 @@ export default function MediaCreate({ all_tags }: Props) {
                                     </div>
 
                                     <div className="space-y-2">
-                                        <Label htmlFor="cover">Image</Label>
+                                        <Label>Image de couverture</Label>
+                                        <div className="flex gap-2">
+                                            <button
+                                                type="button"
+                                                onClick={() => setCoverType('file')}
+                                                className={`flex-1 px-3 py-2 rounded text-sm ${
+                                                    coverType === 'file'
+                                                        ? 'bg-primary text-white'
+                                                        : 'bg-muted hover:bg-secondary'
+                                                }`}
+                                            >
+                                                Fichier
+                                            </button>
+                                            <button
+                                                type="button"
+                                                onClick={() => setCoverType('url')}
+                                                className={`flex-1 px-3 py-2 rounded text-sm ${
+                                                    coverType === 'url'
+                                                        ? 'bg-primary text-white'
+                                                        : 'bg-muted hover:bg-secondary'
+                                                }`}
+                                            >
+                                                URL
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {coverType === 'file' ? (
+                                    <div className="space-y-2">
+                                        <Label htmlFor="cover">Télécharger une image</Label>
                                         <Input
                                             id="cover"
                                             name="cover"
                                             type="file"
                                             accept="image/*"
+                                            onChange={handleFileChange}
                                         />
                                         <InputError message={errors.cover} />
+                                        {coverPreview && (
+                                            <div className="mt-3 border rounded-lg overflow-hidden bg-muted p-2">
+                                                <img
+                                                    src={coverPreview}
+                                                    alt="Aperçu"
+                                                    className="max-h-48 w-full object-cover rounded"
+                                                />
+                                            </div>
+                                        )}
                                     </div>
-                                </div>
+                                ) : (
+                                    <div className="space-y-2">
+                                        <Label htmlFor="cover_url">URL de l'image</Label>
+                                        <Input
+                                            id="cover_url"
+                                            name="cover_url"
+                                            type="url"
+                                            placeholder="https://example.com/image.jpg"
+                                            onChange={handleUrlChange}
+                                        />
+                                        <InputError message={errors.cover_url} />
+                                        {coverPreview && (
+                                            <div className="mt-4 space-y-2">
+                                                <div className="border rounded-lg overflow-hidden bg-muted p-3">
+                                                    <img
+                                                        src={coverPreview}
+                                                        alt="Aperçu de couverture"
+                                                        className="max-h-64 w-full object-cover rounded"
+                                                        onError={() => setCoverPreview(null)}
+                                                    />
+                                                </div>
+                                                <p className="text-xs text-muted-foreground break-all">
+                                                    <strong>URL:</strong> {coverPreview}
+                                                </p>
+                                            </div>
+                                        )}
+                                    </div>
+                                )}
                             </div>
 
                             {/* SAISONS ET ÉPISODES */}
@@ -243,7 +351,7 @@ export default function MediaCreate({ all_tags }: Props) {
                                         id="tags"
                                         name="tags[]"
                                         multiple
-                                        className="border rounded p-2 w-full min-h-[120px]"
+                                        className="border rounded p-2 w-full min-h-[120px] bg-background text-foreground"
                                     >
                                         {all_tags.map(tag => (
                                             <option key={tag.id} value={tag.id}>

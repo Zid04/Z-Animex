@@ -166,8 +166,8 @@ export default function MediaIndex({ media, filters, tags, years }: Props) {
             {/* Grille */}
             <div className="grid gap-4 md:grid-cols-3 lg:grid-cols-4">
                 {media.data.map((item: any) => (
-                    <Link key={item.id} href={show(item.id).url}>
-                        <div className="border rounded-lg overflow-hidden hover:shadow transition">
+                    <Link key={item.id} href={show(item.id).url} className="group no-underline">
+                        <div className="border rounded-lg overflow-hidden hover:shadow transition bg-background">
                             {item.cover && (
                                 <img
                                     src={item.cover.startsWith('http') ? item.cover : `/storage/${item.cover}`}
@@ -177,14 +177,14 @@ export default function MediaIndex({ media, filters, tags, years }: Props) {
                             )}
 
                             <div className="p-3">
-                                <div className="text-sm uppercase text-muted-foreground">
+                                <div className="text-sm uppercase text-muted-foreground group-hover:text-muted-foreground">
                                     {item.type}
                                 </div>
 
-                                <div className="font-semibold">{item.title}</div>
+                                <div className="font-semibold group-hover:text-foreground">{item.title}</div>
 
                                 {item.year && (
-                                    <div className="text-xs text-muted-foreground">
+                                    <div className="text-xs text-muted-foreground group-hover:text-muted-foreground">
                                         {item.year}
                                     </div>
                                 )}

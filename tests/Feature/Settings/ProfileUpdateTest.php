@@ -23,12 +23,16 @@ class ProfileUpdateTest extends TestCase
 
     public function test_profile_information_can_be_updated()
     {
-        $user = User::factory()->create();
+        // On crée un user avec un email déjà vérifié
+        $user = User::factory()->create([
+            'email_verified_at' => now(),
+        ]);
 
         $response = $this
             ->actingAs($user)
             ->patch(route('profile.update'), [
                 'name' => 'Test User',
+                'pseudo' => 'testuser',
                 'email' => 'test@example.com',
             ]);
 
@@ -39,18 +43,24 @@ class ProfileUpdateTest extends TestCase
         $user->refresh();
 
         $this->assertSame('Test User', $user->name);
+        $this->assertSame('testuser', $user->pseudo);
         $this->assertSame('test@example.com', $user->email);
-        $this->assertNull($user->email_verified_at);
+
+        // Ta logique : email_verified_at NE DOIT PAS être remis à null
+        $this->assertNotNull($user->email_verified_at);
     }
 
     public function test_email_verification_status_is_unchanged_when_the_email_address_is_unchanged()
     {
-        $user = User::factory()->create();
+        $user = User::factory()->create([
+            'email_verified_at' => now(),
+        ]);
 
         $response = $this
             ->actingAs($user)
             ->patch(route('profile.update'), [
                 'name' => 'Test User',
+                'pseudo' => 'testuser',
                 'email' => $user->email,
             ]);
 
@@ -58,6 +68,7 @@ class ProfileUpdateTest extends TestCase
             ->assertSessionHasNoErrors()
             ->assertRedirect(route('profile.edit'));
 
+        // Ta logique : email_verified_at reste inchangé
         $this->assertNotNull($user->refresh()->email_verified_at);
     }
 

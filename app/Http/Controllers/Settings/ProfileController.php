@@ -78,7 +78,7 @@ class ProfileController extends Controller
         $user->update($validated);
 
         // Redirect Inertia-friendly
-        return back(303)->with('status', 'Profile updated successfully.');
+        return redirect(route('profile.edit'))->with('status', 'Profile updated successfully.');
     }
 
     /**

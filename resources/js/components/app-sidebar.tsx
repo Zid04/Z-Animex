@@ -1,5 +1,5 @@
 import { Link } from '@inertiajs/react';
-import { LayoutGrid, Film, ListChecks, Heart } from 'lucide-react';
+import { LayoutGrid, Film, ListChecks, Heart, Star } from 'lucide-react';
 import { NavUser } from '@/components/nav-user';
 import {
     Sidebar,
@@ -34,6 +34,11 @@ const mainNavItems: NavItem[] = [
         title: 'Mes médias',
         href: '/my-media',
         icon: Heart,
+    },
+    {
+        title: 'Favoris',
+        href: '/favorites',
+        icon: Star,
     },
     {
         title: 'Watchlist',

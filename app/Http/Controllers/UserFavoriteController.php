@@ -7,6 +7,18 @@ use Illuminate\Http\Request;
 
 class UserFavoriteController extends Controller
 {
+    public function index()
+    {
+        $user = auth()->user();
+        $favorites = $user->favorites()
+            ->with('media')
+            ->paginate(12);
+
+        return inertia('favorites/index', [
+            'favorites' => $favorites,
+        ]);
+    }
+
     public function store(Media $media)
     {
         $user = auth()->user();

@@ -69,8 +69,8 @@ export default function Dashboard({ stats, latest_media }: DashboardProps) {
 
                     <div className="grid gap-4 md:grid-cols-3 lg:grid-cols-4">
                         {latest_media.map((media) => (
-                            <Link key={media.id} href={`/media/${media.id}`}>
-                                <div className="border rounded-lg overflow-hidden hover:shadow transition">
+                            <Link key={media.id} href={`/media/${media.id}`} className="group no-underline">
+                                <div className="border rounded-lg overflow-hidden hover:shadow transition bg-background">
                                     {media.cover && (
                                         <img
                                             src={media.cover.startsWith('http') ? media.cover : `/storage/${media.cover}`}
@@ -79,7 +79,7 @@ export default function Dashboard({ stats, latest_media }: DashboardProps) {
                                     )}
 
                                     <div className="p-3 space-y-1">
-                                        <div className="font-semibold">{media.title}</div>
+                                        <div className="font-semibold group-hover:text-foreground">{media.title}</div>
 
                                         <div className="flex flex-wrap gap-1">
                                             {media.tags?.map((tag) => (

@@ -39,16 +39,19 @@ class ImportAnimesToMedia extends Command
                     'type' => 'anime',
                     'year' => $anime->year,
                     'visibility' => 'public',
-                    'user_id' => 1, // Par défaut, attribuer à l'utilisateur admin
-                    'description' => null, // Pas de description fournie par MyAnimeList
-                    'cover' => $coverUrl, // URL directe MyAnimeList
+                     // Par défaut, attribuer à l'utilisateur admin
+                    'user_id' => 1,
+                    // Pas de description fournie par MyAnimeList
+                    'description' => null, 
+                    // URL directe MyAnimeList
+                    'cover' => $coverUrl, 
                 ]);
                 
                 $count++;
             }
         }
 
-        $this->info("✅ {$count} animes importés avec succès dans la table media!");
+        $this->info(" {$count} animes importés avec succès dans la table media!");
         return Command::SUCCESS;
     }
 }

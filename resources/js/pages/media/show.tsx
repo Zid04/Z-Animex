@@ -175,7 +175,7 @@ export default function MediaShow({ media, progress, watchlist_collections }: Pr
                     </div>
 
                     <Form {...tagsAttach.form(media.id)} className="flex gap-3">
-                        <select name="tag_id" className="border rounded p-2">
+                        <select name="tag_id" className="border rounded p-2 bg-background text-foreground">
                             {media.all_tags.map(tag => (
                                 <option key={tag.id} value={tag.id}>
                                     {tag.name}

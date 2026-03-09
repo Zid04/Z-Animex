@@ -71,6 +71,7 @@ Route::middleware(['auth'])->group(function () {
     | FAVORITES (Favoris)
     |--------------------------------------------------------------------------
     */
+    Route::get('/favorites', [UserFavoriteController::class, 'index'])->name('favorites.index');
     Route::post('/media/{media}/favorite', [UserFavoriteController::class, 'store'])->name('favorites.store');
     Route::delete('/media/{media}/favorite', [UserFavoriteController::class, 'destroy'])->name('favorites.destroy');
 
@@ -80,7 +81,8 @@ Route::middleware(['auth'])->group(function () {
     | WATCHLIST
     |--------------------------------------------------------------------------
     */
-    Route::post('/media/{media}/watchlist', [WatchlistController::class, 'store'])->name('watchlist.store');
+    Route::post('/watchlist', [WatchlistController::class, 'storeNamed'])->name('watchlist.store');
+    Route::post('/media/{media}/watchlist', [WatchlistController::class, 'store'])->name('watchlist.store.media');
     Route::delete('/media/{media}/watchlist', [WatchlistController::class, 'destroy'])->name('watchlist.destroy');
     Route::get('/watchlist', [WatchlistController::class, 'index'])->name('watchlist.index');
 

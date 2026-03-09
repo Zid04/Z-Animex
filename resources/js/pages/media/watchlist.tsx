@@ -1,4 +1,4 @@
-import { Head, Link, Form } from '@inertiajs/react';
+import { Head, Link, Form, router } from '@inertiajs/react';
 import React, { useState } from 'react';
 
 import { Button } from '@/components/ui/button';
@@ -6,6 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 
 import AppLayout from '@/layouts/app-layout';
+import { WatchlistSelector } from '@/components/watchlist-selector';
 
 import { show as mediaShow } from '@/routes/media';
 import { destroy as watchlistDestroy } from '@/routes/watchlist';
@@ -38,19 +39,21 @@ type Props = {
 };
 
 export default function Watchlist({ items, collections }: Props) {
-    // Debug: Log the actual cover URLs received
-    if (items.length > 0) {
-        console.log('First item cover:', items[0].media.cover);
-        console.log('Starts with http:', items[0].media.cover?.startsWith('http'));
-    }
     const [showAddForm, setShowAddForm] = useState(false);
+    const [selectedWatchlistId, setSelectedWatchlistId] = useState<number | null>(null);
     const [editingId, setEditingId] = useState<number | null>(null);
+
+    // Trouver la watchlist sélectionnée
+    const selectedWatchlist = selectedWatchlistId 
+        ? collections.find(c => c.id === selectedWatchlistId)
+        : null;
 
     return (
         <AppLayout>
             <Head title="Ma Watchlist" />
 
-            <div className="max-w-6xl mx-auto py-10 space-y-10">
+            <div className="max-w-7xl mx-auto py-10 space-y-10">
+                {/* TITRE ET BOUTON CRÉER */}
                 <div className="flex items-center justify-between">
                     <h1 className="text-3xl font-semibold">Ma Watchlist</h1>
                     <Button
@@ -102,141 +105,230 @@ export default function Watchlist({ items, collections }: Props) {
                     </div>
                 )}
 
-                {/* WATCHLIST PAR DÉFAUT */}
-                {items.length > 0 && (
-                    <div className="space-y-4">
-                        <h2 className="text-xl font-semibold">Sans catégorie</h2>
-                        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-                            {items.map(({ id, media }) => (
-                                <WatchlistCard
-                                    key={id}
-                                    id={id}
-                                    media={media}
-                                />
+                {/* CONTENTEUR PRINCIPAL - 2 COLONNES */}
+                <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+                    {/* COLONNE GAUCHE - LISTE DES WATCHLISTS */}
+                    <div className="lg:col-span-1">
+                        <div className="sticky top-20 space-y-3">
+                            <h3 className="text-lg font-semibold">Mes watchlists</h3>
+
+                            {/* Watchlist par défaut */}
+                            {items.length > 0 && (
+                                <button
+                                    onClick={() => setSelectedWatchlistId(null)}
+                                    className={`w-full text-left p-3 rounded-lg border-2 transition font-medium ${
+                                        selectedWatchlistId === null
+                                            ? 'bg-primary text-primary-foreground border-primary'
+                                            : 'bg-background border-input text-foreground hover:bg-muted hover:border-primary'
+                                    }`}
+                                >
+                                    <div className="text-sm">Sans catégorie</div>
+                                    <div className={`text-xs mt-1 ${selectedWatchlistId === null ? 'text-primary-foreground/80' : 'text-muted-foreground'}`}>
+                                        {items.length} média{items.length > 1 ? 's' : ''}
+                                    </div>
+                                </button>
+                            )}
+
+                            {/* Collections */}
+                            {collections.map((collection) => (
+                                <button
+                                    key={collection.id}
+                                    onClick={() => setSelectedWatchlistId(collection.id)}
+                                    className={`w-full text-left p-3 rounded-lg border-2 transition font-medium ${
+                                        selectedWatchlistId === collection.id
+                                            ? 'bg-primary text-primary-foreground border-primary'
+                                            : 'bg-background border-input text-foreground hover:bg-muted hover:border-primary'
+                                    }`}
+                                >
+                                    <div className="text-sm truncate">{collection.title}</div>
+                                    <div className={`text-xs mt-1 ${selectedWatchlistId === collection.id ? 'text-primary-foreground/80' : 'text-muted-foreground'}`}>
+                                        {collection.watchlists.length} média{collection.watchlists.length > 1 ? 's' : ''}
+                                    </div>
+                                </button>
                             ))}
+
+                            {items.length === 0 && collections.length === 0 && (
+                                <p className="text-sm text-muted-foreground text-center py-4">
+                                    Aucune watchlist
+                                </p>
+                            )}
                         </div>
                     </div>
-                )}
 
-                {/* COLLECTIONS */}
-                {collections.length > 0 && (
-                    <div className="space-y-6">
-                        {collections.map((collection) => (
-                            <CollectionSection
-                                key={collection.id}
-                                collection={collection}
+                    {/* COLONNE DROITE - CONTENU */}
+                    <div className="lg:col-span-3">
+                        {selectedWatchlistId === null && items.length > 0 ? (
+                            // Afficher watchlist par défaut
+                            <WatchlistContent
+                                title="Sans catégorie"
+                                media={items}
                                 editingId={editingId}
                                 setEditingId={setEditingId}
+                                collections={collections}
                             />
-                        ))}
+                        ) : selectedWatchlist ? (
+                            // Afficher collection sélectionnée
+                            <CollectionContent
+                                collection={selectedWatchlist}
+                                editingId={editingId}
+                                setEditingId={setEditingId}
+                                collections={collections}
+                            />
+                        ) : (
+                            <div className="text-center py-10">
+                                <p className="text-muted-foreground">
+                                    Sélectionnez une watchlist pour voir ses médias
+                                </p>
+                            </div>
+                        )}
                     </div>
-                )}
-
-                {items.length === 0 && collections.length === 0 && (
-                    <p className="text-muted-foreground text-center py-10">
-                        Votre watchlist est vide. Ajoutez des médias ou créez une nouvelle liste!
-                    </p>
-                )}
+                </div>
             </div>
         </AppLayout>
     );
 }
 
-function WatchlistCard({ id, media }: { id: number; media: MediaItem }) {
-    const imageSrc = media.cover && media.cover.startsWith('http') 
-        ? media.cover 
-        : media.cover ? `/storage/${media.cover}` 
-        : '/images/placeholder.png';
+function WatchlistContent({
+    title,
+    media,
+    editingId,
+    setEditingId,
+    collections,
+}: {
+    title: string;
+    media: WatchlistItem[];
+    editingId: number | null;
+    setEditingId: (id: number | null) => void;
+    collections: WatchlistCollection[];
+}) {
+    const [showAddMedia, setShowAddMedia] = useState(false);
 
     return (
-        <div className="border rounded-lg overflow-hidden hover:shadow transition bg-white">
-            <Link href={mediaShow.url(media.id)}>
-                <img
-                    src={imageSrc}
-                    alt={media.title}
-                    className="w-full h-48 object-cover"
-                />
-            </Link>
-
-            <div className="p-3 space-y-2">
-                <h3 className="font-semibold text-sm">{media.title}</h3>
-                <p className="text-xs text-muted-foreground">
-                    {media.year ?? '—'} • {media.type}
-                </p>
-
-                <Form
-                    {...watchlistDestroy.form(media.id)}
-                    className="pt-2"
+        <div className="space-y-6">
+            <div className="flex items-center justify-between">
+                <div>
+                    <h2 className="text-2xl font-semibold">{title}</h2>
+                    <p className="text-muted-foreground text-sm">
+                        {media.length} média{media.length > 1 ? 's' : ''} dans cette watchlist
+                    </p>
+                </div>
+                <Button 
+                    onClick={() => setShowAddMedia(!showAddMedia)}
+                    size="sm"
                 >
-                    {({ processing }) => (
-                        <Button
-                            type="submit"
-                            variant="ghost"
-                            size="sm"
-                            disabled={processing}
-                            className="w-full text-xs"
-                        >
-                            Retirer
-                        </Button>
-                    )}
-                </Form>
+                    {showAddMedia ? 'Annuler' : '+ Ajouter un média'}
+                </Button>
             </div>
+
+            {showAddMedia && (
+                <div className="border rounded-lg p-4 bg-muted/50">
+                    <p className="text-sm text-muted-foreground mb-4">
+                        Naviguer vers la page des médias pour en ajouter à cette watchlist.
+                    </p>
+                    <Link href="/media" className="inline-block">
+                        <Button>Voir tous les médias</Button>
+                    </Link>
+                </div>
+            )}
+
+            {media.length > 0 ? (
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                    {media.map(({ id, media: mediaItem }) => (
+                        <MediaCard
+                            key={id}
+                            id={id}
+                            media={mediaItem}
+                        />
+                    ))}
+                </div>
+            ) : (
+                <p className="text-muted-foreground text-center py-10">
+                    Aucun média dans cette watchlist.
+                </p>
+            )}
         </div>
     );
 }
 
-function CollectionSection({
+function CollectionContent({
     collection,
     editingId,
     setEditingId,
+    collections,
 }: {
     collection: WatchlistCollection;
     editingId: number | null;
     setEditingId: (id: number | null) => void;
+    collections: WatchlistCollection[];
 }) {
     const isEditing = editingId === collection.id;
+    const [showAddMedia, setShowAddMedia] = useState(false);
 
     return (
-        <div className="space-y-4">
-            <div className="flex items-center justify-between border-b pb-4">
-                <div>
-                    <h2 className="text-xl font-semibold">{collection.title}</h2>
-                    {collection.description && (
-                        <p className="text-sm text-muted-foreground mt-1">{collection.description}</p>
-                    )}
-                </div>
-
-                <div className="flex gap-2">
-                    <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => setEditingId(isEditing ? null : collection.id)}
-                    >
-                        {isEditing ? 'Annuler' : 'Modifier'}
-                    </Button>
-
-                    <Form
-                        {...watchlistCollectionDestroy.form(collection.id)}
-                        className="inline"
-                    >
-                        {({ processing }) => (
-                            <Button
-                                type="submit"
-                                variant="destructive"
-                                size="sm"
-                                disabled={processing}
-                                onClick={(e) => {
-                                    if (!confirm('Confirmer la suppression de cette watchlist?')) {
-                                        e.preventDefault();
-                                    }
-                                }}
-                            >
-                                Supprimer
-                            </Button>
+        <div className="space-y-6">
+            {/* HEADER */}
+            <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                    <div>
+                        <h2 className="text-2xl font-semibold">{collection.title}</h2>
+                        {collection.description && (
+                            <p className="text-muted-foreground text-sm mt-1">{collection.description}</p>
                         )}
-                    </Form>
+                        <p className="text-muted-foreground text-sm mt-1">
+                            {collection.watchlists.length} média{collection.watchlists.length > 1 ? 's' : ''}
+                        </p>
+                    </div>
+
+                    <div className="flex gap-2 flex-col">
+                        <div className="flex gap-2">
+                            <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => setEditingId(isEditing ? null : collection.id)}
+                            >
+                                {isEditing ? 'Annuler' : 'Modifier'}
+                            </Button>
+
+                            <Form
+                                {...watchlistCollectionDestroy.form(collection.id)}
+                                className="inline"
+                            >
+                                {({ processing }) => (
+                                    <Button
+                                        type="submit"
+                                        variant="destructive"
+                                        size="sm"
+                                        disabled={processing}
+                                        onClick={(e) => {
+                                            if (!confirm('Confirmer la suppression de cette watchlist?')) {
+                                                e.preventDefault();
+                                            }
+                                        }}
+                                    >
+                                        Supprimer
+                                    </Button>
+                                )}
+                            </Form>
+                        </div>
+                        <Button 
+                            onClick={() => setShowAddMedia(!showAddMedia)}
+                            size="sm"
+                        >
+                            {showAddMedia ? 'Annuler' : '+ Ajouter un média'}
+                        </Button>
+                    </div>
                 </div>
             </div>
+
+            {/* SÉLECTEUR D'AJOUT DE MÉDIA */}
+            {showAddMedia && (
+                <div className="border rounded-lg p-4 bg-muted/50">
+                    <p>Impossible de chercher les médias depuis la watchlist. Veuillez:</p>
+                    <Link href="/media" className="inline-block mt-2">
+                        <Button size="sm">Voir tous les médias</Button>
+                    </Link>
+                </div>
+            )}
 
             {/* FORMULAIRE ÉDITION */}
             {isEditing && (
@@ -279,9 +371,9 @@ function CollectionSection({
 
             {/* GRILLE DES MÉDIAS */}
             {collection.watchlists.length > 0 ? (
-                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                     {collection.watchlists.map(({ id, media }) => (
-                        <WatchlistCard
+                        <MediaCard
                             key={id}
                             id={id}
                             media={media}
@@ -289,8 +381,53 @@ function CollectionSection({
                     ))}
                 </div>
             ) : (
-                <p className="text-sm text-muted-foreground py-4">Aucun média dans cette watchlist.</p>
+                <p className="text-sm text-muted-foreground py-4 text-center">
+                    Aucun média dans cette watchlist.
+                </p>
             )}
+        </div>
+    );
+}
+
+function MediaCard({ id, media }: { id: number; media: MediaItem }) {
+    const imageSrc = media.cover && media.cover.startsWith('http') 
+        ? media.cover 
+        : media.cover ? `/storage/${media.cover}` 
+        : '/images/placeholder.png';
+
+    return (
+        <div className="border-2 border-border rounded-lg overflow-hidden hover:shadow-lg hover:border-primary transition-all bg-background">
+            <Link href={mediaShow.url(media.id)}>
+                <img
+                    src={imageSrc}
+                    alt={media.title}
+                    className="w-full h-48 object-cover hover:opacity-90 transition"
+                />
+            </Link>
+
+            <div className="p-4 space-y-3">
+                <h3 className="font-semibold text-sm line-clamp-2 text-foreground">{media.title}</h3>
+                <p className="text-xs text-muted-foreground">
+                    {media.year ?? '—'} • {media.type}
+                </p>
+
+                <Form
+                    {...watchlistDestroy.form(media.id)}
+                    className="pt-2"
+                >
+                    {({ processing }) => (
+                        <Button
+                            type="submit"
+                            variant="destructive"
+                            size="sm"
+                            disabled={processing}
+                            className="w-full text-xs"
+                        >
+                            {processing ? 'Suppression...' : 'Retirer'}
+                        </Button>
+                    )}
+                </Form>
+            </div>
         </div>
     );
 }

@@ -141,3 +141,10 @@
         @apply bg-background text-foreground;
     }
 }
+
+/* Dégradé bleu-rose personnalisé pour les boutons */
+@layer components {
+    .btn-gradient-brand {
+        @apply bg-gradient-to-br from-[#D12EF5] to-[#2ECDF5] text-white shadow-xs hover:shadow-md transition-all;
+    }
+}

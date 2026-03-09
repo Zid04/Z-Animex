@@ -14,10 +14,12 @@ class TwoFactorAuthenticationTest extends TestCase
 
     public function test_two_factor_settings_page_can_be_rendered()
     {
+        // Si Fortify désactive complètement la fonctionnalité, on skip
         if (! Features::canManageTwoFactorAuthentication()) {
             $this->markTestSkipped('Two-factor authentication is not enabled.');
         }
 
+        // On active confirm et confirmPassword
         Features::twoFactorAuthentication([
             'confirm' => true,
             'confirmPassword' => true,
@@ -25,12 +27,15 @@ class TwoFactorAuthenticationTest extends TestCase
 
         $user = User::factory()->create();
 
+        // Comme confirmPassword = true, la page doit être accessible
+        // uniquement si la session contient auth.password_confirmed_at
         $this->actingAs($user)
             ->withSession(['auth.password_confirmed_at' => time()])
             ->get(route('two-factor.show'))
+            ->assertOk()
             ->assertInertia(fn (Assert $page) => $page
                 ->component('settings/two-factor')
-                ->where('twoFactorEnabled', false),
+                ->where('twoFactorEnabled', false)
             );
     }
 
@@ -40,50 +45,54 @@ class TwoFactorAuthenticationTest extends TestCase
             $this->markTestSkipped('Two-factor authentication is not enabled.');
         }
 
-        $user = User::factory()->create();
-
         Features::twoFactorAuthentication([
             'confirm' => true,
             'confirmPassword' => true,
         ]);
 
-        $response = $this->actingAs($user)
-            ->get(route('two-factor.show'));
+        $user = User::factory()->create();
 
-        $response->assertRedirect(route('password.confirm'));
+        // Comme confirmPassword = true et aucune confirmation en session,
+        // ton controller applique le middleware password.confirm
+        $this->actingAs($user)
+            ->get(route('two-factor.show'))
+            ->assertRedirect(route('password.confirm'));
     }
 
-    public function test_two_factor_settings_page_does_not_requires_password_confirmation_when_disabled()
+    public function test_two_factor_settings_page_does_not_require_password_confirmation_when_disabled()
     {
         if (! Features::canManageTwoFactorAuthentication()) {
             $this->markTestSkipped('Two-factor authentication is not enabled.');
         }
-
-        $user = User::factory()->create();
 
         Features::twoFactorAuthentication([
             'confirm' => true,
             'confirmPassword' => false,
         ]);
 
+        $user = User::factory()->create();
+
+        // confirmPassword = false → pas besoin de password.confirm
         $this->actingAs($user)
             ->get(route('two-factor.show'))
             ->assertOk()
             ->assertInertia(fn (Assert $page) => $page
-                ->component('settings/two-factor'),
+                ->component('settings/two-factor')
             );
     }
 
-    public function test_two_factor_settings_page_returns_forbidden_response_when_two_factor_is_disabled()
+    public function test_two_factor_settings_page_returns_forbidden_when_two_factor_is_disabled()
     {
         if (! Features::canManageTwoFactorAuthentication()) {
             $this->markTestSkipped('Two-factor authentication is not enabled.');
         }
 
+        // On désactive complètement la fonctionnalité
         config(['fortify.features' => []]);
 
         $user = User::factory()->create();
 
+        // Ton controller doit renvoyer 403
         $this->actingAs($user)
             ->withSession(['auth.password_confirmed_at' => time()])
             ->get(route('two-factor.show'))

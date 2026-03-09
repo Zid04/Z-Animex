@@ -4,7 +4,6 @@ import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { store as watchlistStore } from '@/routes/watchlist';
 
 type WatchlistCollection = {
     id: number;
@@ -40,12 +39,12 @@ export function WatchlistSelector({ media_id, collections }: Props) {
     const isSelected = selectedCollectionId !== undefined;
 
     return (
-        <div className="space-y-4 border rounded-lg p-4 bg-white shadow-md">
+        <div className="space-y-4 border rounded-lg p-6 bg-background shadow-lg border-border">
             <div className="flex items-center justify-between">
-                <h3 className="font-semibold">Sélectionner une watchlist</h3>
+                <h3 className="text-lg font-semibold text-foreground">Sélectionner une watchlist</h3>
                 <button 
                     onClick={() => setShowSelector(false)} 
-                    className="text-muted-foreground hover:text-foreground"
+                    className="text-muted-foreground hover:text-foreground transition"
                 >
                     ✕
                 </button>
@@ -54,7 +53,7 @@ export function WatchlistSelector({ media_id, collections }: Props) {
             {/* Collections existantes */}
             {collections.length > 0 && (
                 <div className="space-y-2">
-                    <Label className="text-sm text-muted-foreground">Collections</Label>
+                    <Label className="text-sm font-medium text-foreground">Collections</Label>
                     <div className="space-y-2 max-h-48 overflow-y-auto">
                         {collections.map(collection => (
                             <button
@@ -62,11 +61,11 @@ export function WatchlistSelector({ media_id, collections }: Props) {
                                 onClick={() => setSelectedCollectionId(collection.id)}
                                 className={`w-full p-3 text-left border-2 rounded transition ${
                                     selectedCollectionId === collection.id
-                                        ? 'border-blue-500 bg-blue-50'
-                                        : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50'
+                                        ? 'border-blue-500 bg-blue-50 dark:bg-blue-950'
+                                        : 'border-input bg-background hover:border-blue-300 hover:bg-muted'
                                 }`}
                             >
-                                <div className="font-medium">{collection.title}</div>
+                                <div className="font-medium text-foreground">{collection.title}</div>
                                 {collection.description && (
                                     <div className="text-sm text-muted-foreground mt-1">{collection.description}</div>
                                 )}
@@ -81,17 +80,17 @@ export function WatchlistSelector({ media_id, collections }: Props) {
                 onClick={() => setSelectedCollectionId(null)}
                 className={`w-full p-3 text-left border-2 rounded transition ${
                     selectedCollectionId === null
-                        ? 'border-blue-500 bg-blue-50'
-                        : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50'
+                        ? 'border-blue-500 bg-blue-50 dark:bg-blue-950'
+                        : 'border-input bg-background hover:border-blue-300 hover:bg-muted'
                 }`}
             >
-                <div className="font-medium">Watchlist générale</div>
+                <div className="font-medium text-foreground">Watchlist générale</div>
                 <div className="text-sm text-muted-foreground mt-1">Sans catégorie</div>
             </button>
 
             {/* Info */}
             {collections.length === 0 && (
-                <div className="text-sm text-muted-foreground text-center py-2">
+                <div className="text-sm text-muted-foreground text-center py-3 bg-muted rounded border border-input">
                     Créez une nouvelle collection dans votre page watchlist
                 </div>
             )}
@@ -99,31 +98,32 @@ export function WatchlistSelector({ media_id, collections }: Props) {
             {/* Bouton ajouter */}
             {isSelected && (
                 <Form
-                    action={watchlistStore.form(media_id).action}
-                    method={watchlistStore.form(media_id).method}
-                    className="space-y-2"
+                    action={`/media/${media_id}/watchlist`}
+                    method="post"
+                    className="space-y-3 pt-2 border-t border-border"
                 >
                     <Input
                         type="hidden"
                         name="watchlist_collection_id"
                         value={selectedCollectionId || ''}
                     />
-                    <button
+                    <Button
                         type="submit"
-                        className="w-full px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 disabled:bg-gray-400 transition"
+                        className="w-full"
                     >
                         Ajouter à la watchlist
-                    </button>
+                    </Button>
                 </Form>
             )}
 
             {!isSelected && (
-                <button
+                <Button
                     onClick={() => setShowSelector(false)}
-                    className="w-full px-4 py-2 text-gray-600 border border-gray-300 rounded hover:bg-gray-50 transition"
+                    variant="outline"
+                    className="w-full"
                 >
                     Annuler
-                </button>
+                </Button>
             )}
         </div>
     );

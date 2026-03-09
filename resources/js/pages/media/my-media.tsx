@@ -41,9 +41,9 @@ export default function MyMedia({ media }: Props) {
                 {media.data.map((item) => (
                     <div
                         key={item.id}
-                        className="border rounded-lg overflow-hidden hover:shadow transition"
+                        className="border rounded-lg overflow-hidden hover:shadow transition bg-background"
                     >
-                        <Link href={show(item.id).url}>
+                        <Link href={show(item.id).url} className="group no-underline block">
                             {item.cover && (
                                 <img
                                     src={item.cover.startsWith('http') ? item.cover : `/storage/${item.cover}`}
