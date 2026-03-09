@@ -103,7 +103,7 @@ class DashboardAuthTest extends TestCase
         $response = $this->get(route('media.index'));
 
         // Vérifier qu'on est redirigé vers la connexion
-        $response->assertStatus(401);
+        $response->assertStatus(302);
     }
 
     /**
